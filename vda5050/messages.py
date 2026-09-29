@@ -105,6 +105,15 @@ def connection_message(header: dict, state: ConnectionState) -> dict:
     return {**header, "connectionState": state.value}
 
 
+def instant_action(action_type: str, action_id: str, blocking_type: str = "HARD") -> dict:
+    return {"actionId": action_id, "actionType": action_type, "blockingType": blocking_type}
+
+
+def instant_actions_message(header: dict, actions: list[dict]) -> dict:
+    """Section 6.9: actions to run immediately, e.g. startPause / stopPause."""
+    return {**header, "actions": actions}
+
+
 def state_message(
     header: dict,
     *,

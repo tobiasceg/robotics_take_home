@@ -2,9 +2,11 @@
 
 Run from the repo root (WSL or anywhere with Python + paho-mqtt):
     python3 -m master.main order orders/pickup_dropoff.json   # send, then follow it to the end
+    python3 -m master.main pause                              # instantActions: startPause
+    python3 -m master.main resume                             # instantActions: stopPause
     python3 -m master.main watch                              # just print what the robot is doing
 
-Exit codes: 0 order complete, 1 order rejected or failed, 2 robot unreachable or timeout.
+Exit codes: 0 success, 1 rejected or failed, 2 robot unreachable or timeout.
 """
 from __future__ import annotations
 
@@ -19,11 +21,13 @@ from pathlib import Path
 from master.link import MasterLink
 from master.monitor import OrderMonitor
 from vda5050 import topics
-from vda5050.messages import HeaderFactory
+from vda5050.messages import HeaderFactory, instant_action, instant_actions_message
 from vda5050.schema import validation_errors
 from vda5050.topics import AgvId
 
 ACCEPT_TIMEOUT_S = 10.0
+INSTANT_ACTION_TIMEOUT_S = 20.0
+INSTANT_COMMANDS = {"pause": "startPause", "resume": "stopPause"}
 
 
 def say(line: str) -> None:
@@ -43,6 +47,8 @@ def parse_args() -> argparse.Namespace:
     order.add_argument("--order-id", help="orderId to use (default: file's orderId + time, unique per send)")
     order.add_argument("--timeout", type=float, default=600.0, help="give up after this many seconds")
 
+    sub.add_parser("pause", help="send instantActions startPause and wait until the robot stands still")
+    sub.add_parser("resume", help="send instantActions stopPause and wait until the robot resumes")
     sub.add_parser("watch", help="print the robot's connection and state changes until Ctrl+C")
     return p.parse_args()
 
@@ -52,15 +58,16 @@ def prepare_order(template: dict, headers: HeaderFactory, order_id: str) -> dict
     return {**template, **headers.next(topics.ORDER), "orderId": order_id, "orderUpdateId": 0}
 
 
-def wait_for(link: MasterLink, monitor: OrderMonitor, topic_name: str, timeout: float) -> dict | None:
-    """Process messages until one on `topic_name` arrives; print events on the way."""
+def wait_for(link: MasterLink, monitor: OrderMonitor | None, topic_name: str, timeout: float) -> dict | None:
+    """Process messages until one on `topic_name` arrives; print the monitor's events on the way."""
     deadline = time.monotonic() + timeout
     while (remaining := deadline - time.monotonic()) > 0:
         try:
             name, msg = link.inbox.get(timeout=remaining)
         except queue.Empty:
             return None
-        handle(monitor, name, msg)
+        if monitor is not None:
+            handle(monitor, name, msg)
         if name == topic_name:
             return msg
     return None
@@ -70,6 +77,18 @@ def handle(monitor: OrderMonitor, name: str, msg: dict) -> None:
     events = monitor.on_state(msg) if name == topics.STATE else monitor.on_connection(msg)
     for event in events:
         say(event)
+
+
+def ensure_online(link: MasterLink, monitor: OrderMonitor | None, serial: str) -> dict | None:
+    """Robot's retained connection must be ONLINE and it must be publishing state. Returns that state."""
+    connection = wait_for(link, monitor, topics.CONNECTION, timeout=3.0)
+    if connection is None or connection["connectionState"] != "ONLINE":
+        say(f"robot {serial} is not online ({connection['connectionState'] if connection else 'no status'})")
+        return None
+    state = wait_for(link, monitor, topics.STATE, timeout=5.0)
+    if state is None:
+        say("robot is online but not publishing state")
+    return state
 
 
 def run_order(link: MasterLink, headers: HeaderFactory, args: argparse.Namespace) -> int:
@@ -82,13 +101,8 @@ def run_order(link: MasterLink, headers: HeaderFactory, args: argparse.Namespace
         return 1
 
     monitor = OrderMonitor(order_id)
-    connection = wait_for(link, monitor, topics.CONNECTION, timeout=3.0)
-    if connection is None or connection["connectionState"] != "ONLINE":
-        say(f"robot {args.serial} is not online ({connection['connectionState'] if connection else 'no status'})")
-        return 2
-    first_state = wait_for(link, monitor, topics.STATE, timeout=5.0)
+    first_state = ensure_online(link, monitor, args.serial)
     if first_state is None:
-        say("robot is online but not publishing state")
         return 2
     monitor.baseline(first_state)
 
@@ -112,6 +126,32 @@ def run_order(link: MasterLink, headers: HeaderFactory, args: argparse.Namespace
     return 0 if monitor.succeeded else 1
 
 
+def run_instant_action(link: MasterLink, headers: HeaderFactory, args: argparse.Namespace) -> int:
+    """Send startPause/stopPause and wait for the robot's actionStates to say FINISHED or FAILED."""
+    action_type = INSTANT_COMMANDS[args.command]
+    if ensure_online(link, None, args.serial) is None:
+        return 2
+
+    action_id = f"{action_type}-{datetime.now():%H%M%S}"
+    link.publish(topics.INSTANT_ACTIONS,
+                 instant_actions_message(headers.next(topics.INSTANT_ACTIONS), [instant_action(action_type, action_id)]))
+    say(f"sent instantActions {action_type} ({action_id})")
+
+    deadline, last_status = time.monotonic() + INSTANT_ACTION_TIMEOUT_S, None
+    while (state := wait_for(link, None, topics.STATE, timeout=deadline - time.monotonic())) is not None:
+        action = next((a for a in state["actionStates"] if a["actionId"] == action_id), None)
+        if action is None or action["actionStatus"] == last_status:
+            continue
+        last_status = action["actionStatus"]
+        note = f" ({action['resultDescription']})" if action.get("resultDescription") else ""
+        say(f"{action_id} {last_status}{note}: paused={state['paused']}, driving={state['driving']}, "
+            f"lastNodeId={state['lastNodeId'] or '-'}")
+        if last_status in ("FINISHED", "FAILED"):
+            return 0 if last_status == "FINISHED" else 1
+    say(f"no final status for {action_id} within {INSTANT_ACTION_TIMEOUT_S:.0f}s")
+    return 2
+
+
 def run_watch(link: MasterLink) -> int:
     monitor = OrderMonitor()
     say("watching; Ctrl+C to stop")
@@ -125,8 +165,14 @@ def main() -> None:
     agv = AgvId(args.manufacturer, args.serial)
     link = MasterLink(agv, args.host, args.port)
     link.start()
+    headers = HeaderFactory(agv)
     try:
-        code = run_order(link, HeaderFactory(agv), args) if args.command == "order" else run_watch(link)
+        if args.command == "order":
+            code = run_order(link, headers, args)
+        elif args.command in INSTANT_COMMANDS:
+            code = run_instant_action(link, headers, args)
+        else:
+            code = run_watch(link)
     except KeyboardInterrupt:
         code = 0
     finally:

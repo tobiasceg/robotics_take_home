@@ -7,7 +7,7 @@ pose set in RViz:
 Without a simulator (straight-line fake robot, no ROS needed):
     python3 -m client.main --fake-nav
 
-Threads: paho's network thread receives orders and puts them on a queue; the
+Threads: paho's network thread receives orders and instantActions and puts them on a queue; the
 main loop below is the only thread that touches the executor. It ticks 10x a
 second and publishes state on every change and at least every --state-period.
 """
@@ -68,8 +68,11 @@ def main() -> None:
     executor = OrderExecutor(navigator, action_duration_s=args.action_duration)
     battery = MockBattery()
 
-    inbox: queue.Queue[dict] = queue.Queue()
-    link = MqttLink(agv, headers, handlers={topics.ORDER: inbox.put},
+    inbox: queue.Queue[tuple[str, dict]] = queue.Queue()
+    handlers = {name: (lambda msg, name=name: inbox.put((name, msg)))
+                for name in (topics.ORDER, topics.INSTANT_ACTIONS)}
+    dispatch = {topics.ORDER: executor.submit, topics.INSTANT_ACTIONS: executor.submit_instant_actions}
+    link = MqttLink(agv, headers, handlers=handlers,
                     host=args.host, port=args.port, keepalive_s=args.keepalive)
 
     stop = threading.Event()
@@ -82,7 +85,8 @@ def main() -> None:
     try:
         while not stop.wait(TICK_S):
             while not inbox.empty():
-                executor.submit(inbox.get_nowait())
+                name, msg = inbox.get_nowait()
+                dispatch[name](msg)
             changed = executor.tick()
             battery.update(executor.driving, TICK_S)
 
