@@ -1,0 +1,195 @@
+{
+  "metaInformation": {
+    "projectIdentification": "2026-09-15T07:52:27.477Z",
+    "creator": "",
+    "exportTimestamp": "",
+    "lifVersion": "1.0.0"
+  },
+  "layouts": [
+    {
+      "layoutId": "entry",
+      "layoutName": "Entry",
+      "layoutVersion": "1.0.0",
+      "layoutLevelId": "1",
+      "layoutDescription": "",
+      "nodes": [
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n1",
+          "nodeName": "n1",
+          "nodePosition": {
+            "x": -0.762,
+            "y": 2.365
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n2",
+          "nodeName": "n2",
+          "nodePosition": {
+            "x": 0.191,
+            "y": 1.144
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n3",
+          "nodeName": "n3",
+          "nodePosition": {
+            "x": 0.935,
+            "y": -0.229
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n4",
+          "nodeName": "n4",
+          "nodePosition": {
+            "x": 2.556,
+            "y": -0.896
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n5",
+          "nodeName": "n5",
+          "nodePosition": {
+            "x": 3.204,
+            "y": 0.801
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n6",
+          "nodeName": "n6",
+          "nodePosition": {
+            "x": 1.984,
+            "y": 2.117
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n7",
+          "nodeName": "n7",
+          "nodePosition": {
+            "x": 2.918,
+            "y": 3.452
+          },
+          "vehicleTypeNodeProperties": []
+        },
+        {
+          "mapId": "",
+          "nodeDescription": "",
+          "nodeId": "n8",
+          "nodeName": "n8",
+          "nodePosition": {
+            "x": 4.025,
+            "y": 4.749
+          },
+          "vehicleTypeNodeProperties": []
+        }
+      ],
+      "edges": [
+        {
+          "edgeId": "n1_n2",
+          "edgeName": "n1_n2",
+          "startNodeId": "n1",
+          "endNodeId": "n2",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n2_n3",
+          "edgeName": "n2_n3",
+          "startNodeId": "n2",
+          "endNodeId": "n3",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n3_n4",
+          "edgeName": "n3_n4",
+          "startNodeId": "n3",
+          "endNodeId": "n4",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n4_n5",
+          "edgeName": "n4_n5",
+          "startNodeId": "n4",
+          "endNodeId": "n5",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n5_n6",
+          "edgeName": "n5_n6",
+          "startNodeId": "n5",
+          "endNodeId": "n6",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n6_n7",
+          "edgeName": "n6_n7",
+          "startNodeId": "n6",
+          "endNodeId": "n7",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        },
+        {
+          "edgeId": "n7_n8",
+          "edgeName": "n7_n8",
+          "startNodeId": "n7",
+          "endNodeId": "n8",
+          "edgeDescription": "",
+          "vehicleTypeEdgeProperties": []
+        }
+      ],
+      "stations": [
+        {
+          "stationId": "1",
+          "stationName": "PickupStation",
+          "interactionNodeIds": [
+            "n4"
+          ],
+          "stationDescription": "",
+          "stationHeight": 0,
+          "stationPosition": {
+            "x": 2.556,
+            "y": -0.896,
+            "theta": 0
+          }
+        },
+        {
+          "stationId": "2",
+          "stationName": "DropoffStation",
+          "interactionNodeIds": [
+            "n8"
+          ],
+          "stationDescription": "",
+          "stationHeight": 0,
+          "stationPosition": {
+            "x": 4.025,
+            "y": 4.749,
+            "theta": 0
+          }
+        }
+      ]
+    }
+  ]
+}
