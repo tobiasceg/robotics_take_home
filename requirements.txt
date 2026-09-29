@@ -1,0 +1,6 @@
+# Python deps installed with pip. ROS 2 pieces (rclpy, nav2_msgs, tf2_ros) come from
+# apt via ros-humble-* packages, not pip.
+paho-mqtt>=2.0,<3
+jsonschema>=4.18
+pyyaml>=5.4
+pytest>=6.2

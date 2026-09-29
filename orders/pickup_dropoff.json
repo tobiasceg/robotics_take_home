@@ -1,0 +1,82 @@
+{
+  "headerId": 0,
+  "timestamp": "2026-09-29T00:00:00.000Z",
+  "version": "2.1.0",
+  "manufacturer": "robotis",
+  "serialNumber": "tb3_waffle_01",
+  "orderId": "order-001",
+  "orderUpdateId": 0,
+  "nodes": [
+    {
+      "nodeId": "n1",
+      "sequenceId": 0,
+      "released": true,
+      "nodePosition": { "x": -0.762, "y": 2.365, "theta": -0.9081, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n2",
+      "sequenceId": 2,
+      "released": true,
+      "nodePosition": { "x": 0.191, "y": 1.144, "theta": -1.0742, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n3",
+      "sequenceId": 4,
+      "released": true,
+      "nodePosition": { "x": 0.935, "y": -0.229, "theta": -0.3904, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n4",
+      "nodeDescription": "PickupStation",
+      "sequenceId": 6,
+      "released": true,
+      "nodePosition": { "x": 2.556, "y": -0.896, "theta": 1.2060, "mapId": "house_map" },
+      "actions": [
+        { "actionId": "pick-1", "actionType": "pick", "blockingType": "HARD" }
+      ]
+    },
+    {
+      "nodeId": "n5",
+      "sequenceId": 8,
+      "released": true,
+      "nodePosition": { "x": 3.204, "y": 0.801, "theta": 2.3184, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n6",
+      "sequenceId": 10,
+      "released": true,
+      "nodePosition": { "x": 1.984, "y": 2.117, "theta": 0.9603, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n7",
+      "sequenceId": 12,
+      "released": true,
+      "nodePosition": { "x": 2.918, "y": 3.452, "theta": 0.8643, "mapId": "house_map" },
+      "actions": []
+    },
+    {
+      "nodeId": "n8",
+      "nodeDescription": "DropoffStation",
+      "sequenceId": 14,
+      "released": true,
+      "nodePosition": { "x": 4.025, "y": 4.749, "theta": 0.8643, "mapId": "house_map" },
+      "actions": [
+        { "actionId": "drop-1", "actionType": "drop", "blockingType": "HARD" }
+      ]
+    }
+  ],
+  "edges": [
+    { "edgeId": "n1_n2", "sequenceId": 1,  "released": true, "startNodeId": "n1", "endNodeId": "n2", "actions": [] },
+    { "edgeId": "n2_n3", "sequenceId": 3,  "released": true, "startNodeId": "n2", "endNodeId": "n3", "actions": [] },
+    { "edgeId": "n3_n4", "sequenceId": 5,  "released": true, "startNodeId": "n3", "endNodeId": "n4", "actions": [] },
+    { "edgeId": "n4_n5", "sequenceId": 7,  "released": true, "startNodeId": "n4", "endNodeId": "n5", "actions": [] },
+    { "edgeId": "n5_n6", "sequenceId": 9,  "released": true, "startNodeId": "n5", "endNodeId": "n6", "actions": [] },
+    { "edgeId": "n6_n7", "sequenceId": 11, "released": true, "startNodeId": "n6", "endNodeId": "n7", "actions": [] },
+    { "edgeId": "n7_n8", "sequenceId": 13, "released": true, "startNodeId": "n7", "endNodeId": "n8", "actions": [] }
+  ]
+}
