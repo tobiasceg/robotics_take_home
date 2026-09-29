@@ -19,6 +19,8 @@ Spec rules followed (VDA5050 6.6, 6.10.2, 6.11):
     and only then are the node's actions triggered
   * actionStates lists every action of the order, starting as WAITING
   * a new order is rejected (orderError) while the current one is running
+  * an order with the same orderId + orderUpdateId as the one on the vehicle
+    is discarded, even after it finished (so every dispatch needs a new orderId)
   * rejection errors stay in the state until a new order is accepted
 """
 from __future__ import annotations
@@ -83,11 +85,13 @@ class OrderExecutor:
             self._reject("orderError", str(exc), {"orderId": msg["orderId"]})
             return
 
+        current = self._order
+        if current and (order.order_id, order.order_update_id) == (current.order_id, current.order_update_id):
+            # Spec 6.6 step 6: same orderId + orderUpdateId is already on the vehicle -> discard,
+            # whether it is still running or already finished.
+            log.info("ignoring order %s: already on the vehicle", order.order_id)
+            return
         if self._phase is not Phase.IDLE:
-            current = self._order
-            if (order.order_id, order.order_update_id) == (current.order_id, current.order_update_id):
-                log.info("ignoring duplicate of order %s", order.order_id)
-                return
             self._reject("orderError", f"busy with order {current.order_id}; order updates are not supported",
                          {"orderId": order.order_id})
             return

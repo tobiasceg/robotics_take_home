@@ -112,6 +112,17 @@ def test_resending_the_same_order_is_ignored():
     assert ex.state_fields()["errors"] == []
 
 
+def test_finished_order_resent_with_same_id_is_ignored_but_new_id_runs():
+    ex, clock = make()
+    ex.submit(ORDER)
+    run(ex, clock)
+    ex.submit(ORDER)
+    assert not ex.driving and ex.state_fields()["node_states"] == []
+
+    ex.submit(dict(ORDER, orderId="order-002"))
+    assert ex.driving and ex.state_fields()["order_id"] == "order-002"
+
+
 def test_invalid_order_reports_validation_error():
     ex, _ = make()
     ex.submit({"orderId": "broken"})
