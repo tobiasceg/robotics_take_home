@@ -1,0 +1,6 @@
+# Normalise text files to LF so scripts run unchanged inside WSL/Linux
+* text=auto eol=lf
+
+# Map images are binary; never convert their line endings
+*.pgm binary
+*.png binary
