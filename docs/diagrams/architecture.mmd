@@ -1,0 +1,25 @@
+flowchart LR
+    M["<b>Master</b><br/>python3 -m master.main"]
+    B[("<b>Mosquitto</b><br/>MQTT broker")]
+
+    subgraph C["<b>Client</b>  python3 -m client.main"]
+        direction TB
+        L["mqtt_link<br/><i>MQTT in and out</i>"]
+        E["executor<br/><i>walks the order</i>"]
+        N["nav2_navigator<br/><i>talks to Nav2</i>"]
+        L --> E --> N
+    end
+
+    subgraph R["ROS 2 Humble"]
+        direction TB
+        NAV["Nav2<br/><i>plans and drives</i>"]
+        G["Gazebo<br/><i>TurtleBot3 in the house</i>"]
+        NAV <--> G
+    end
+
+    M -- "order<br/>instantActions" --> B
+    B -- "state<br/>connection" --> M
+    B -- "order<br/>instantActions" --> L
+    L -- "state<br/>connection" --> B
+    N -- "NavigateToPose goal / cancel" --> NAV
+    G -. "robot position (TF)" .-> N

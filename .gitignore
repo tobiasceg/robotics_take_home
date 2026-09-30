@@ -9,7 +9,8 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Editors / OS
+# Editors / OS / local tooling
+.claude/
 .vscode/
 .idea/
 .DS_Store

@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    participant M as Master
+    participant B as MQTT broker
+    participant C as Client
+    participant N as Nav2 + Gazebo
+
+    C->>B: connection: ONLINE (retained)
+    M->>B: subscribe state, connection
+    B->>M: connection: ONLINE
+
+    M->>B: order (n1 → n8, pick at n4, drop at n8)
+    B->>C: order
+    C->>B: state: orderId set, pick-1 WAITING, drop-1 WAITING
+    B->>M: state → "order accepted"
+
+    loop n1, n2, n3, n4
+        C->>N: NavigateToPose(node)
+        N-->>C: SUCCEEDED
+        C->>B: state: lastNodeId = node
+        B->>M: state → "reached node"
+    end
+
+    Note over C: At n4 (PickupStation): stop, mock pick for 2 s
+    C->>B: state: driving=false, pick-1 RUNNING
+    C->>B: state: pick-1 FINISHED
+    B->>M: state → "pick-1 FINISHED"
+
+    loop n5, n6, n7, n8
+        C->>N: NavigateToPose(node)
+        N-->>C: SUCCEEDED
+        C->>B: state: lastNodeId = node
+    end
+
+    Note over C: At n8 (DropoffStation): stop, mock drop for 2 s
+    C->>B: state: drop-1 RUNNING
+    C->>B: state: drop-1 FINISHED, nodeStates empty
+    B->>M: state → "order COMPLETE"

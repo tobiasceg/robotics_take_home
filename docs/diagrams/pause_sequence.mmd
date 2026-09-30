@@ -1,0 +1,25 @@
+sequenceDiagram
+    autonumber
+    participant M as Master
+    participant B as MQTT broker
+    participant C as Client
+    participant N as Nav2 + Gazebo
+
+    Note over C,N: Robot is driving from n2 to n3
+    M->>B: instantActions: startPause
+    B->>C: instantActions: startPause
+    C->>N: cancel goal (the order is kept)
+    C->>B: state: startPause RUNNING, driving=true
+    N-->>C: CANCELED (robot has stopped)
+    C->>B: state: paused=true, driving=false, startPause FINISHED
+    B->>M: state → "PAUSED"
+
+    Note over C: Robot waits. lastNodeId stays n2.
+
+    M->>B: instantActions: stopPause
+    B->>C: instantActions: stopPause
+    C->>N: NavigateToPose(n3), the same node as before
+    C->>B: state: paused=false, driving=true, stopPause FINISHED
+    B->>M: state → "RESUMED"
+    N-->>C: SUCCEEDED
+    C->>B: state: lastNodeId = n3
